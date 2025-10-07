@@ -1,154 +1,212 @@
 ﻿#include <iostream>
-
-//сложение;
-//вычитание;
-//умножение;
-//деление;
-//унарный минус;
-//инкремент постфиксный и префиксный;
-//декремент постфиксный и префиксный.
+#include <string>
 
 class Fraction
 {
 private:
-	int numerator_;
-	int denominator_;
+    int numerator_;
+    int denominator_;
+
+
+    void reduce() 
+    {
+        int gcd = calcGCD(numerator_, denominator_);
+        numerator_ /= gcd;
+        denominator_ /= gcd;
+
+        if (denominator_ < 0) {
+            numerator_ = -numerator_;
+            denominator_ = -denominator_;
+        }
+    }
+
+    // NOD
+    int calcGCD(int a, int b) const {
+        a = std::abs(a);
+        b = std::abs(b);
+        while (b != 0) {
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
 
 public:
-	Fraction(int numerator, int denominator)
-	{
-		numerator_ = numerator;
-		denominator_ = denominator;
-	}
+    Fraction(int numerator, int denominator) : numerator_(numerator), denominator_(denominator) {
+        if (denominator_ == 0) {
+            throw std::invalid_argument("Denominator cannot be zero");
+        }
+        reduce();
+    }
 
-	int get_numerator_()  { return numerator_; }
-	int get_denominator_() { return denominator_; }
-	void SetDen(int value) { this->denominator_ = value; }
+    
+    void print() const {
+        std::cout << numerator_ << "/" << denominator_;
+    }
 
-	void  print_fraction()const
-	{
-		//if ((numerator_ == denominator_)) std::cout << "1";
-		std::cout << numerator_ << "/" << denominator_;
+   
+    Fraction operator+(const Fraction& other) const {
+        int new_numerator = numerator_ * other.denominator_ + other.numerator_ * denominator_;
+        int new_denominator = denominator_ * other.denominator_;
+        return Fraction(new_numerator, new_denominator);
+    }
 
-	}
-	bool check1() const
-	{
-		if (numerator_ == denominator_) return true;
-	}
+    Fraction operator-(const Fraction& other) const {
+        int new_numerator = numerator_ * other.denominator_ - other.numerator_ * denominator_;
+        int new_denominator = denominator_ * other.denominator_;
+        return Fraction(new_numerator, new_denominator);
+    }
 
-	int NOD(int numerator_, int denominator_)
-	{
-		numerator_ = abs(numerator_);
-		denominator_ = abs(denominator_);
+    Fraction operator*(const Fraction& other) const {
+        int new_numerator = numerator_ * other.numerator_;
+        int new_denominator = denominator_ * other.denominator_;
+        return Fraction(new_numerator, new_denominator);
+    }
 
-		if (denominator_ == 0) return numerator_;
-		else return NOD(numerator_, numerator_ % denominator_);
-	}
+    Fraction operator/(const Fraction& other) const {
+        if (other.numerator_ == 0) {
+            throw std::invalid_argument("Division by zero");
+        }
+        int new_numerator = numerator_ * other.denominator_;
+        int new_denominator = denominator_ * other.numerator_;
+        return Fraction(new_numerator, new_denominator);
+    }
 
-	void Reduce(int &numerator_, int &denominator_) 
-	{
-		int tmp = NOD(numerator_, denominator_);
-		numerator_ = numerator_ / tmp;
-		denominator_ = denominator_ / tmp;
-	}
+    // unar minus
+    Fraction operator-() const {
+        return Fraction(-numerator_, denominator_);
+    }
 
-	Fraction operator+ (const Fraction& frac) 
-	{
-		int num_{};
-		int denom_{};
-		if (denominator_ == frac.denominator_)
-		{
-			num_ = numerator_ + frac.numerator_;
-			denom_ = denominator_;
-		}
-		else
-		{
-			num_ = numerator_ * frac.denominator_ + frac.numerator_ * denominator_;
-			denom_ = denominator_ * frac.denominator_;
-		}
+    // prefix increment
+    Fraction& operator++() {
+        numerator_ += denominator_; 
+        reduce();
+        return *this;
+    }
 
-		//Reduce(num_,denom_);
-		return Fraction(num_, denom_);
-	}
-	
-	Fraction operator- (const Fraction& frac) 
-	{
-		int cd = denominator_ * frac.denominator_; // Общий знаменатель  
-		int ns = numerator_ * frac.denominator_ + frac.numerator_ * denominator_; // Числитель разности  
-		Fraction subtr(ns, cd); // subtr — разность дробей  
-		return subtr;
-	}
+    // postfix increment
+    Fraction operator++(int) {
+        Fraction temp = *this;
+        numerator_ += denominator_;
+        reduce();
+        return temp;
+    }
 
-	Fraction operator* (const Fraction& frac) // Умножение дробей
-	{
-		int num = numerator_ * frac.numerator_; // числитель 
-		int den = denominator_ * frac.denominator_; // знаменатель
-		Fraction mult(num, den); 
-		return mult;
-	}
+    // prefix decrement
+    Fraction& operator--() {
+        numerator_ -= denominator_; 
+        reduce();
+        return *this;
+    }
 
-	Fraction operator/ (const Fraction& frac) // Деление дробей
-	{
-		int num = numerator_ * frac.denominator_; // числитель 
-		int den = frac.numerator_ * denominator_; // знаменатель
-		Fraction div(num, den); 
-		return div;
-	}
+    // postfix decrement 
+    Fraction operator--(int) {
+        Fraction temp = *this;
+        numerator_ -= denominator_;
+        reduce();
+        return temp;
+    }
 
-	Fraction operator- () // Унарный минус
-	{
-		return Fraction(-numerator_, denominator_);
-	}
+    
+    bool operator==(const Fraction& other) const {
+        return numerator_ * other.denominator_ == other.numerator_ * denominator_;
+    }
 
-	Fraction operator++(int) //постфиксный инкремент
-	{
-		numerator_++;
-		denominator_++;
-		return *this;
-	}
-
-	Fraction operator--(int) //постфиксный декремент
-	{
-		numerator_--;
-		denominator_--;
-		return *this;
-	}
+    bool operator!=(const Fraction& other) const {
+        return !(*this == other);
+    }
 };
 
-int main()
+int main(int argc, char** argv)
 {
-	int num1{};
-	int num2{};
-	int den1{};
-	int den2{};
+    try {
+        int num1, den1, num2, den2;
 
-	std::cout << "Enter fraction 1 numerator: "; std::cin >> num1;
-	std::cout << "Enter fraction 1 denominator: "; std::cin >> den1;
-	
-	std::cout << "Enter fraction 2 numerator: "; std::cin >> num2;
-	std::cout << "Enter fraction 2 denominator: "; std::cin >> den2;
+        std::cout << "Enter fraction 1 numerator: ";
+        std::cin >> num1;
+        std::cout << "Enter fraction 1 denominator: ";
+        std::cin >> den1;
 
-	Fraction fraction1(num1, den1);
-	Fraction fraction2(num2, den2);
+        std::cout << "Enter fraction 2 numerator: ";
+        std::cin >> num2;
+        std::cout << "Enter fraction 1 denominator:";
+        std::cin >> den2;
 
-	Fraction fraction3 = fraction1 + fraction2;
+        Fraction f1(num1, den1);
+        Fraction f2(num2, den2);
 
-	//fraction3.Reduce(fraction3.get_numerator_(), fraction3.get_denominator_());
+        Fraction sum = f1 + f2;
+        f1.print();
+        std::cout << " + ";
+        f2.print();
+        std::cout << " = ";
+        sum.print();
+        std::cout << std::endl;
 
-	fraction1.print_fraction();
-	std::cout << " + ";
-	fraction2.print_fraction();
-	std::cout << std::endl;
-	
-	//std::cout << "Fraction 1 + fraction 2 numerator: " << fraction3.get_numerator_() << std::endl;
-	//std::cout << "Fraction 1 + fraction 2 numerator:"  << fraction3.get_denominator_() << std::endl;
-	
-	//std::cout << std::endl;
-	
-	//std::cout << " = "; fraction3.Reduce();
-	
-	fraction3.print_fraction();
+        Fraction diff = f1 - f2;
+        f1.print();
+        std::cout << " - ";
+        f2.print();
+        std::cout << " = ";
+        diff.print();
+        std::cout << std::endl;
 
+        Fraction multiply = f1 * f2;
+        f1.print();
+        std::cout << " * ";
+        f2.print();
+        std::cout << " = ";
+        multiply.print();
+        std::cout << std::endl;
 
-	return 0;
+        
+        Fraction division = f1 / f2;
+        f1.print();
+        std::cout << " / ";
+        f2.print();
+        std::cout << " = ";
+        division.print();
+        std::cout << std::endl;
+
+        //  ++3 / 4 * 4 / 5 = 7 / 5
+        //    Значение дроби 1 = 7 / 4
+        //    7 / 4-- * 4 / 5 = 7 / 5
+        //    Значени дроби 1 = 3 / 4
+
+        std::cout << "++"; 
+        f1.print();
+        ++f1;
+        std::cout << " * ";
+        f2.print();
+        Fraction multnew1 = f1 * f2;
+        std::cout << " = ";
+        multnew1.print();
+        std::cout << std::endl;
+        std::cout << "Fraction 1 new meaning = ";
+        f1.print();
+        std::cout << std::endl;
+   
+        
+        f1.print();
+        std::cout << "--";
+        f1--;
+        std::cout << " * ";
+        f2.print();
+        Fraction multnew2 = f1 * f2;
+        std::cout << " = ";
+        multnew2.print();
+        std::cout << std::endl;
+        std::cout << "Fraction 1 new meaning = ";
+        f1.print();
+        std::cout << std::endl;
+    
+    
+    
+    }
+    catch (const std::exception& e) {
+        std::cout << "ERROR: " << e.what() << std::endl;
+    }
+
+    return EXIT_SUCCESS;
 }
